@@ -1,0 +1,28 @@
+1. Saugoti vartotojo nustatymus EEPROM'e:
+a. duomenu struktura DevData
+b. slaptazodi CyPasswd
+c. duomenu struktura MbData
+
+
+2. Itraukti slaivo pajeska pagal Modbus adresa
+
+
+
+
+
+
+
+Link result     eMBPool()	        xMBMasterGetIsBusy()	    GetException()
+    OK	        MB_ENOERR	                False	              MB_EX_NONE
+Exception	    MB_EIO	                    False	            Exception code
+  Timeout	    MB_ETIMEDOUT	            False	              MB_EX_NONE
+
+
+
+Interfeisai PRV, Ventik, Regulite:
+
+Speed 1/2/3, Boost
+Modbus Read Data
+Modbus Write Data
+
+
