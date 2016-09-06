@@ -62,7 +62,7 @@ eMBMasterReqReportSlaveId( UCHAR ucSndAddr )
 
     if( xMBMasterGetIsBusy( ) ) return MB_MRE_MASTER_BUSY;
 
-    if( GetSlave( ucSndAddr ) == NULL ) return MB_MRE_ILL_ARG;
+    //if( GetSlave( ucSndAddr ) == NULL ) return MB_MRE_ILL_ARG;
 
 	vMBMasterGetPDUSndBuf(&ucMBFrame);
 	vMBMasterSetDestAddress(ucSndAddr);

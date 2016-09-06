@@ -94,14 +94,35 @@ int main()
     if( UartConfig( MbPort.Settings.Baudrate.val, MbPort.Settings.Parity.val, MbPort.Settings.StopBits.val, MbPort.Settings.DataBits.val ) == CYBLE_ERROR_OK ){    
         ( void )eMBMasterInit( MB_RTU, (0u), MbPort.Settings.Baudrate.val, MB_PAR_NONE );
         ( void )eMBMasterEnable();       
-    }
-
+    }  
     
-    eMBMasterReqReportSlaveId( prv->Data.addr );
-    do{
-        eMBMasterPoll();  
-        CyDelay(1);
-    }while( xMBMasterGetIsBusy() == true );
+    CyDelay(250);   //uzdelsimas reikalingas portTimer sustojimui po MbMaster inicializacijos
+    
+    
+    
+    
+    // autopajeska veikiancio slaivo
+    uint8_t i = 200;
+    
+    while( true ){        
+        
+        eMBMasterReqReportSlaveId( i );
+        
+        do{
+            eMBMasterPoll();  
+            CyDelayUs(100);
+        }while( xMBMasterGetIsBusy() == true );
+    
+        if( prv->Status.IsRecognized == true ){
+            prv->Data.addr = i;
+            break;
+        }
+        
+        if( i++ > 247 ) i = 1;
+    }
+    
+    
+
     
     
     /***************************************************************************

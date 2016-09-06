@@ -277,65 +277,65 @@ eMBMasterPoll( void )
      * Otherwise we will handle the event. */
     if( xMBMasterPortEventGet( &eEvent ) == TRUE ){
         switch ( eEvent ){
-        case EV_MASTER_READY:
-            vMBMasterSetIsBusy( FALSE );
-            break;
-        case EV_MASTER_FRAME_SENT:
-        	/* Master is busy now. */
-        	vMBMasterSetIsBusy( TRUE );
-        	vMBMasterGetPDUSndBuf( &ucMBFrame );
-			eStatus = peMBMasterFrameSendCur( ucMBMasterGetDestAddress(), 
-                                                ucMBFrame, ucMBMasterGetPDUSndLength() );   // -> eMBMasterRTUSend()
-            break;
-        case EV_MASTER_FRAME_RECEIVED:
-			eStatus = peMBMasterFrameReceiveCur( &ucRcvAddress, &ucMBFrame, &usLength ); // -> eMBMasterRTUReceive
-			/* Check if the frame is for us. If not ,send an error process event. */
-			if ( ( eStatus == MB_ENOERR ) && ( ucRcvAddress == ucMBMasterGetDestAddress() ) )
-			{
-				( void ) xMBMasterPortEventPost( EV_MASTER_EXECUTE );
-			}
-			else
-			{
-				( void ) xMBMasterPortEventPost( EV_MASTER_ERROR_PROCESS );
-			}
-			break;
-        case EV_MASTER_EXECUTE:
-
-            eException = MB_EX_NONE;
-            ucFunctionCode = ucMBFrame[MB_PDU_FUNC_OFF];
-            
-            if(ucFunctionCode >> 7){
-                eException = (eMBException)ucMBFrame[MB_PDU_DATA_OFF]; 
-                ( void )xMBMasterPortEventPost( EV_MASTER_ERROR_PROCESS );
+            case EV_MASTER_READY:
+                vMBMasterSetIsBusy( FALSE );
                 break;
-            }
-            
-            for( i = 0; i < MB_FUNC_HANDLERS_MAX; i++ )
-            {
-                /* No more function handlers registered. Abort. */
-                if( xMasterFuncHandlers[i].ucFunctionCode == 0 ) break;                
-                if( xMasterFuncHandlers[i].ucFunctionCode == ucFunctionCode )
-                {
-                	vMBMasterSetCBRunInMasterMode(TRUE);
-                    eException = xMasterFuncHandlers[i].pxHandler( ucMBFrame, &usLength );
-                    vMBMasterSetCBRunInMasterMode(FALSE);
+            case EV_MASTER_FRAME_SENT:
+            	/* Master is busy now. */
+            	vMBMasterSetIsBusy( TRUE );
+            	vMBMasterGetPDUSndBuf( &ucMBFrame );
+    			eStatus = peMBMasterFrameSendCur( ucMBMasterGetDestAddress(), 
+                                                    ucMBFrame, ucMBMasterGetPDUSndLength() );   // -> eMBMasterRTUSend()
+                break;
+            case EV_MASTER_FRAME_RECEIVED:
+    			eStatus = peMBMasterFrameReceiveCur( &ucRcvAddress, &ucMBFrame, &usLength ); // -> eMBMasterRTUReceive
+    			/* Check if the frame is for us. If not ,send an error process event. */
+    			if ( ( eStatus == MB_ENOERR ) && ( ucRcvAddress == ucMBMasterGetDestAddress() ) )
+    			{
+    				( void ) xMBMasterPortEventPost( EV_MASTER_EXECUTE );
+    			}
+    			else
+    			{
+    				( void ) xMBMasterPortEventPost( EV_MASTER_ERROR_PROCESS );
+    			}
+    			break;
+            case EV_MASTER_EXECUTE:
+
+                eException = MB_EX_NONE;
+                ucFunctionCode = ucMBFrame[MB_PDU_FUNC_OFF];
+                
+                if(ucFunctionCode >> 7){
+                    eException = (eMBException)ucMBFrame[MB_PDU_DATA_OFF]; 
+                    ( void )xMBMasterPortEventPost( EV_MASTER_ERROR_PROCESS );
                     break;
                 }
-            }
-            
-            ( void )xMBMasterPortEventPost( EV_MASTER_READY );
-            break;
-        case EV_MASTER_RESP_TIMEOUT:
-            eStatus = MB_ETIMEDOUT;
-            vMBMasterSetIsBusy( FALSE );
-            break;
-        case EV_MASTER_ERROR_PROCESS:
-            //Error processing            
-//            CYASSERT( eException != MB_EX_NONE );
-            
-            eStatus = MB_EIO;           
-        	vMBMasterSetIsBusy( FALSE );
-        	break;
+                
+                for( i = 0; i < MB_FUNC_HANDLERS_MAX; i++ )
+                {
+                    /* No more function handlers registered. Abort. */
+                    if( xMasterFuncHandlers[i].ucFunctionCode == 0 ) break;                
+                    if( xMasterFuncHandlers[i].ucFunctionCode == ucFunctionCode )
+                    {
+                    	vMBMasterSetCBRunInMasterMode(TRUE);
+                        eException = xMasterFuncHandlers[i].pxHandler( ucMBFrame, &usLength );
+                        vMBMasterSetCBRunInMasterMode(FALSE);
+                        break;
+                    }
+                }
+                
+                ( void )xMBMasterPortEventPost( EV_MASTER_READY );
+                break;
+            case EV_MASTER_RESP_TIMEOUT:
+                eStatus = MB_ETIMEDOUT;
+                vMBMasterSetIsBusy( FALSE );
+                break;
+            case EV_MASTER_ERROR_PROCESS:
+                //Error processing            
+    //            CYASSERT( eException != MB_EX_NONE );
+                
+                eStatus = MB_EIO;           
+            	vMBMasterSetIsBusy( FALSE );
+            	break;
         }
     }
    

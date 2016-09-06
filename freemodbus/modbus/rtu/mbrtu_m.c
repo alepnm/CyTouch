@@ -208,7 +208,7 @@ eMBMasterRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength 
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usCRC16;
 
-    if ( ucSlaveAddress > MB_MASTER_TOTAL_SLAVE_NUM ) return MB_EINVAL;
+    //if ( ucSlaveAddress > MB_MASTER_TOTAL_SLAVE_NUM ) return MB_EINVAL;
     
     EnterCriticalSection(&isr);
 
