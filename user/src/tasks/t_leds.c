@@ -41,14 +41,11 @@ struct _leds LEDS;
 
 
 /* ******************************* Externs ********************************* */
-bool RunLeds_1(void);
-bool RunLeds_2(void);
-bool RunLeds_3(void);
-
 static void BleLed_Process(void);
 static void OnOffLed_Process(void);
 static void TLeds_Process(void);
 static void SpeedLeds_Process(void);
+
 
 /* Grazina true, kai visi funkcijos zingsniai atlikti */
 static bool ShowNoLink(void);
@@ -348,6 +345,9 @@ static void TLeds_Process(){
         SpiWriteWord( led_point );
     }
 }  
+
+
+
 static void SpeedLeds_Process(){
     
     static bool led = LED_OFF; 
@@ -443,7 +443,7 @@ bool RunLeds_1(){
     
     if( delay > GetTicks() ) return result;
     
-    delay = GetTicks() + 30;
+    delay = GetTicks() + 50;
     
     switch( stage ){
         case 0:

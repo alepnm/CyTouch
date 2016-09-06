@@ -54,11 +54,14 @@ EE_LOCKTIMER_ADDR           0x0020                4
 */
 
 
-#define EE_DATA_OK_FLAG_VAL         0xAA   /* pozymis netuscio EEPROMO */ 
-#define EE_BASE_ADDR                0x0010
-#define EE_DATA_OK_FLAG_ADDR        0x0011
-#define EE_MB_DATA_ADDR             0x0012
-#define EE_TSET_RANGE_ADDR          0x001A
+#define EE_DATA_OK_FLAG_VAL         0xAA   /* pozymis netuscio EEPROMO ( 1 byte )*/
+
+/* EEPROM adresai */
+#define EE_BASE_ADDR                0x0010  /* bazinis adresas */
+#define EE_DATA_OK_FLAG_ADDR        0x0011  /* ( 1 byte ) */
+#define EE_MB_DATA_ADDR             0x0012  /* ( 7 bytes ) */
+#define EE_SLAVE_ADDR               0x001A  /* slaivo adresas ( 1 byte ) */
+#define EE_TSET_RANGE_ADDR          0x001C  /* ( 3 bytes ) */
 #define EE_LOCKTIMER_ADDR           0x0020
 #define EE_PASSWD_ADDR              0x0024
 

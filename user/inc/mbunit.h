@@ -21,10 +21,10 @@
 #define MB_ADDRESS_MIN          ( 1 )   /*! Smallest possible slave address. */
 #define MB_ADDRESS_MAX          ( 247 ) /*! Biggest possible slave address. */
     
-#define MB_M_CONNECT_NTEST  (6u)    //kiek kartu bandom konnektintis prie slave'o pries ismetant konnekto klaida
-#define MB_READ_ID_DELAY    (5000u)
-#define MB_READ_DELAY       (100u)
-#define MB_WRITE_DELAY      (3000u)
+#define MB_M_CONNECT_NTEST      (6u)    //kiek kartu bandom konnektintis prie slave'o pries ismetant konnekto klaida
+#define MB_READ_ID_DELAY        (5000u)
+#define MB_READ_DELAY           (100u)
+#define MB_WRITE_DELAY          (3000u)
     
 typedef enum { UNKNOWN = 0, PRVE, PRVW, VENTIKE, VENTIKW, REGULITE }stype_t;
 

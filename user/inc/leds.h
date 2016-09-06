@@ -83,5 +83,9 @@ struct _leds{
 void InitLEDS( void );
 void CheckLeds( void );
 
+bool RunLeds_1(void);
+bool RunLeds_2(void);
+bool RunLeds_3(void);
+
 #endif
 /* [] END OF FILE */

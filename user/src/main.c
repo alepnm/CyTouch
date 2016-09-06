@@ -59,6 +59,7 @@ void T_Leds(void);
 void T_MBus(void);
 void T_Ble(void); 
 
+static void FindSlaveDevice(void);
 static void RestoreDefaults(void);
 CY_ISR_PROTO(NestedIsrHandler);
 
@@ -91,38 +92,39 @@ int main()
     prv = CreateSlave( 1u );
     if( prv == NULL ) CYASSERT(0u);
     
-    if( UartConfig( MbPort.Settings.Baudrate.val, MbPort.Settings.Parity.val, MbPort.Settings.StopBits.val, MbPort.Settings.DataBits.val ) == CYBLE_ERROR_OK ){    
+    EE_GetByte( EE_SLAVE_ADDR, &prv->Data.addr );
+    
+    //if( UartConfig( MbPort.Settings.Baudrate.val, MbPort.Settings.Parity.val, MbPort.Settings.StopBits.val, MbPort.Settings.DataBits.val ) == CYBLE_ERROR_OK ){ 
+    if( UartConfig( 4800u, SCB_UART_PARITY_EVEN, SCB_UART_STOP_BITS_1, 8u ) == CYBLE_ERROR_OK ){
         ( void )eMBMasterInit( MB_RTU, (0u), MbPort.Settings.Baudrate.val, MB_PAR_NONE );
         ( void )eMBMasterEnable();       
     }  
     
-    CyDelay(250);   //uzdelsimas reikalingas portTimer sustojimui po MbMaster inicializacijos
+    CyDelay(250);   //uzdelsimas reikalingas portTimer sustojimui po MbMaster inicializacijos    
     
     
-    
-    
-    // autopajeska veikiancio slaivo
-    uint8_t i = 200;
-    
-    while( true ){        
+    if( prv->Data.addr == 0 || prv->Data.addr > MB_ADDRESS_MAX ) {
+        // slaivo adresas neteisingas, reikia jieskoti veikiancio slaivo
         
-        eMBMasterReqReportSlaveId( i );
+        FindSlaveDevice();  //jieskome pirma veikianti devaisa 
+        
+        EE_PutByte( EE_SLAVE_ADDR, &prv->Data.addr );   // saugojam EEPROM'e rasto slaivo adresa
+    }else{
+    
+        eMBMasterReqReportSlaveId( prv->Data.addr );    
         
         do{
-            eMBMasterPoll();  
+            eMBMasterPoll();          
             CyDelayUs(100);
-        }while( xMBMasterGetIsBusy() == true );
-    
-        if( prv->Status.IsRecognized == true ){
-            prv->Data.addr = i;
-            break;
-        }
+        }while( xMBMasterGetIsBusy() == true );        
         
-        if( i++ > 247 ) i = 1;
+        if( prv->Status.IsRecognized == false ){
+            
+            FindSlaveDevice();  //jieskome pirma veikianti devaisa 
+            EE_PutByte( EE_SLAVE_ADDR, &prv->Data.addr );   // saugojam EEPROM'e rasto slaivo adresa
+        }        
     }
     
-    
-
     
     
     /***************************************************************************
@@ -275,9 +277,10 @@ CYBLE_API_RESULT_T HWInit(){
 }
 
 CYBLE_API_RESULT_T CyTouchSettings(){    
-    uint8_t var;
+    uint8_t var = 0xFF;
     
-//    EE_PutByte( EE_DATA_OK_FLAG_ADDR, 0xFF);
+    //EE_PutByte( EE_DATA_OK_FLAG_ADDR, &var);
+    //EE_PutByte( EE_SLAVE_ADDR, &var );
     
     EE_GetByte( EE_DATA_OK_FLAG_ADDR, &var );
     
@@ -287,7 +290,7 @@ CYBLE_API_RESULT_T CyTouchSettings(){
     
     EE_GetArray( MbPort.Settings.data, EE_MB_DATA_ADDR, sizeof( MbPort.Settings.data ));
     MbPort.Mode = SCB_MBUS;
-
+    
     EE_GetArray( CyTouchControl.TSet.data, EE_TSET_RANGE_ADDR, sizeof( CyTouchControl.TSet.data ));
     EE_GetArray( CyTouchControl.Passwd, EE_PASSWD_ADDR, sizeof( CyTouchControl.Passwd ));
     EE_GetArray( CyTouchControl.LockTimer.data, EE_LOCKTIMER_ADDR, sizeof( CyTouchControl.LockTimer.data ));
@@ -311,9 +314,119 @@ CYBLE_API_RESULT_T CyTouchSettings(){
 }
 
 
+// automatine veikiancio slaivo pajeska
+static void FindSlaveDevice(){
+
+    uint8_t i = 120;
+    uint16_t leds = TLEDS_OFF, bit = LEDT1;    
+    uint32_t led_timer = GetTicks() + 100;
+    bool show = false;
+    
+    while( true ){        
+        
+        eMBMasterReqReportSlaveId( i );
+        
+        do{
+            eMBMasterPoll();          
+
+            if( led_timer < GetTicks() ){
+                
+                led_timer = GetTicks() + 100;
+         
+                switch( i / 16 ){
+                    case 0:
+                    leds = TLEDS_OFF;
+                    bit = LEDT1;
+                    break;
+                    case 1:
+                    leds |= LEDT1;
+                    bit = LEDT2;
+                    break;
+                    case 2:
+                    leds |= LEDT2;
+                    bit = LEDT3;
+                    break;
+                    case 3:
+                    leds |= LEDT3;
+                    bit = LEDT4;
+                    break;
+                    case 4:
+                    leds |= LEDT4;
+                    bit = LEDT5;
+                    break;
+                    case 5:
+                    leds |= LEDT5;
+                    bit = LEDT6;
+                    break;
+                    case 6:
+                    leds |= LEDT6;
+                    bit = LEDT7;
+                    break;
+                    case 7:
+                    leds |= LEDT7;
+                    bit = LEDT8;
+                    break;
+                    case 8:
+                    leds |= LEDT8;
+                    bit = LEDT9;
+                    break;
+                    case 9:
+                    leds |= LEDT9;
+                    bit = LEDT10;
+                    break;
+                    case 10:
+                    leds |= LEDT10;
+                    bit = LEDT11;
+                    break;
+                    case 11:
+                    leds |= LEDT11;
+                    bit = LEDT12;
+                    break;
+                    case 12:
+                    leds |= LEDT12;
+                    bit = LEDT13;
+                    break;
+                    case 13:
+                    leds |= LEDT13;
+                    bit = LEDT14;
+                    break;
+                    case 14:
+                    leds |= LEDT14;
+                    bit = LEDT15;
+                    break;
+                    case 15:
+                    leds |= LEDT15;
+                    bit = LEDT16;
+                    break;
+                    default:
+
+                    break;            
+                }
+                
+                show = !show;
+                
+                if(show)leds |= bit;
+                else leds &= ~bit;            
+                
+                SpiWriteWord( leds );        
+            }           
+            
+            CyDelayUs(100);
+        }while( xMBMasterGetIsBusy() == true );
+    
+        if( prv->Status.IsRecognized == true ){
+            prv->Data.addr = i;
+            break;
+        }
+
+        if( i++ > MB_ADDRESS_MAX ) i = 1;
+    }
+}
+
+
 void RestoreDefaults(){
     
-    uint8_t var = 0xAA;
+    uint8_t var;
     
     EE_GetDWord( EE_WTIME_ADDR, &Time.WTime );    
     
@@ -326,6 +439,9 @@ void RestoreDefaults(){
     MbPort.Settings.StopBits.val = SCB_UART_STOP_BITS_1;
     MbPort.Settings.DataBits.val = (8u);    
     EE_PutArray( MbPort.Settings.data, EE_MB_DATA_ADDR, sizeof( MbPort.Settings.data )); 
+    
+    var = 1u;
+    EE_PutByte( EE_SLAVE_ADDR, &var );
    
     CyTouchControl.TSet.MinValue.val = 15;
     CyTouchControl.TSet.MinRange.valLow = -5;
@@ -341,6 +457,7 @@ void RestoreDefaults(){
     CyTouchControl.LockTimer.val = LOCK_TIMER_DEF;
     EE_PutArray( CyTouchControl.LockTimer.data, EE_LOCKTIMER_ADDR, sizeof( CyTouchControl.LockTimer.data ));
     
+    var = 0xAA;    
     EE_PutByte( EE_DATA_OK_FLAG_ADDR, &var );   
 }
 
