@@ -85,39 +85,40 @@ int main()
     Shed_SetTask (T_Control,    (1000u), (50u));
     Shed_SetTask (T_Leds,       (2000u), (25u));
 	Shed_SetTask (T_MBus,       (0u), (10u));
-    Shed_SetTask (T_Ble,        (0u), (5u)); 
+    Shed_SetTask (T_Ble,        (0u), (5u));
     
     
     apiResult = CyBle_Start( StackEvents );
     if( apiResult != CYBLE_ERROR_OK ) CYASSERT(0u);     
     
-    prv = CreateSlave( 200u );
-    if( prv == NULL ) CYASSERT(0u);
-    
-    EE_GetByte( EE_SLAVE_ADDR, &prv->Data.addr );
-    
     //if( UartConfig( MbPort.Settings.Baudrate.val, MbPort.Settings.Parity.val, MbPort.Settings.StopBits.val, MbPort.Settings.DataBits.val ) == CYBLE_ERROR_OK ){ 
-    if( UartConfig( 19200u, SCB_UART_PARITY_NONE, SCB_UART_STOP_BITS_1, 8u ) == CYBLE_ERROR_OK ){
+    if( UartConfig( 19200u, SCB_UART_PARITY_EVEN, SCB_UART_STOP_BITS_1, 8u ) == CYBLE_ERROR_OK ){
         ( void )eMBMasterInit( MB_RTU, (0u), MbPort.Settings.Baudrate.val, MB_PAR_NONE );
         ( void )eMBMasterEnable();
     }  
 
        
+    prv = CreateSlave( 1u );
+    if( prv == NULL ) CYASSERT(0u);
+    
+    /* skaitom is EEPROM paskutinio veikiancio sleivo adresa */
+    EE_GetByte( EE_SLAVE_ADDR, &prv->Data.addr );
+    
     
 /* Jieskome sleiva. Galimi variantai:
-    1. Neteisingas sleivo adresas. Jieskame veikianti sleiva ir, jai toks yra isimenam EEPROME jo adresa.
+    1. Neteisingas sleivo adresas. Jieskame veikianti sleiva ir, jai toks yra, isimenam EEPROMe jo adresa.
     2. Sleivo adresas teisingas, bet jis neatsako. Galimi variantai:
         2.1 Nera veikianciu sleivu.
-        2.2 Sleivo adresas skiriasi nuo uzregistroto paskutinio veikiancio.  Surandame toki ir isimenam EEPROME
+        2.2 Sleivo adresas skiriasi nuo uzregistroto paskutinio veikiancio.  Surandame toki ir isimenam EEPROMe
             jo adresa.
         2.3 Sleivo adresas sutampa su uzregistruotu paskutiniu veikianciu, bet del kazkokiu tai priezasciu
             iskarto neatsake. Surandame toki ir nieko nedarom.   
     
-    */
+    */    
     
     
     if( prv->Data.addr == 0 || prv->Data.addr > MB_ADDRESS_MAX ) {
-        // slaivo adresas neteisingas, reikia jieskoti veikiancio slaivo
+        /* adresas neteisingas, reikia jieskoti veikiancio slaivo */
         
         /* jieskome pirma veikianti devaisa */
         FindSlaveDevice();
@@ -125,15 +126,18 @@ int main()
         /* saugojam EEPROM'e rasto slaivo adresa */
         EE_PutByte( EE_SLAVE_ADDR, &prv->Data.addr );
     }else{
+        /* adresas teisingas */
     
-        eMBMasterReqReportSlaveId( prv->Data.addr );    
+        eMBMasterReqReportSlaveId( prv->Data.addr );
         
         do{
-            eMBMasterPoll();          
+            eMBMasterPoll();
             CyDelayUs(100);
-        }while( xMBMasterGetIsBusy() == true );        
+        }while( xMBMasterGetIsBusy() == true );
+        
         
         if( prv->Status.IsRecognized == false ){
+            /* jai esamu adresu sleivas neatsake, bandom dar arba jieskome kita sleiva */
             
             uint8_t tmp = prv->Data.addr;
             
@@ -141,7 +145,7 @@ int main()
             FindSlaveDevice();
             
             /* saugojam EEPROM'e rasto slaivo adresa, jai jo adresas skiriasi nuo issaugoto */
-            if(tmp != prv->Data.addr) EE_PutByte( EE_SLAVE_ADDR, &prv->Data.addr );
+            if( tmp != prv->Data.addr ) EE_PutByte( EE_SLAVE_ADDR, &prv->Data.addr );
         }        
     }
     
@@ -153,8 +157,8 @@ int main()
     for(;;)
     {       
         
-        if( delay < GetTicks() ){       
-            delay = GetTicks() + (100u);    
+        if( delay < GetTicks() ){
+            delay = GetTicks() + (100u);
             
 //            Filter_LED_Write( !Filter_LED_Read() );
             
@@ -163,14 +167,14 @@ int main()
             AdcConvStart();
             
             // gavom restart komanda
-            if( CyTouchControl.Status.Restart == true ){                
+            if( CyTouchControl.Status.Restart == true ){
                 CyTouchControl.Status.Restart = false;
                 CyBle_GapDisconnect( cyBle_connHandle.bdHandle );
                 CyDelay(1000u);
                 CySoftwareReset();
             }
             
-            if( CyTouchControl.Status.Defaults == true ){                
+            if( CyTouchControl.Status.Defaults == true ){
                 CyTouchControl.Status.Defaults = false;
                 EE_PutByte( EE_DATA_OK_FLAG_ADDR, (uint8_t*)0xFF);
                 CyDelay(1000u);
@@ -178,7 +182,7 @@ int main()
             }           
             
            
-            ( void )SCB_ModeHandler();             
+            ( void )SCB_ModeHandler();
             
             if( BoostCounterDelay < GetTicks() ){
                 BoostCounterDelay = GetTicks() + (1000u);
@@ -187,14 +191,14 @@ int main()
                 CyIntSetPending(NESTED_ISR);
                 
                 // jai laikas nenustatytas, boostas isjungiamas rankiniu budu
-                if( DevData.Boost.Time > (0u) ){        
+                if( DevData.Boost.Time > (0u) ){
                     if( ( DevData.Boost.Counter ) > (0u) ){
                         
                         // tikrinam vienetui, kad viena syki ideti i eile komanda MBusCmdWriteBoostCoil
                         if( ( DevData.Boost.Counter-- ) == (1u) ){
                             DevData.Boost.val = false;
                             BoostUpdateRequireBit = true;
-                        }            
+                        }
                     }
                 }else{
                     DevData.Boost.Counter = (0u);
@@ -206,7 +210,7 @@ int main()
                 else{
                     Time.secsCounter = (0u);
                     
-                    Time.WTime++;                    
+                    Time.WTime++;
                     EE_PutDWord( EE_WTIME_ADDR, &Time.WTime );
                     
                     if( Time.minsCounter < 60u ) Time.minsCounter++;
@@ -215,7 +219,7 @@ int main()
                         
                         if( Time.hoursCounter < 24u ) Time.hoursCounter++;
                         else{
-                            Time.hoursCounter = (0u);   
+                            Time.hoursCounter = (0u);
                         }
                     }
                 }                
@@ -223,11 +227,11 @@ int main()
         }
    
                
-        Shed_DispatchTask(); 
+        Shed_DispatchTask();
         AdcProcess();
         
-        HandleBleProcess(); 
-        CyBle_ProcessEvents();        
+        HandleBleProcess();
+        CyBle_ProcessEvents();
         
 //        if( AuthKeyRequired == true ){
 //            AuthKeyRequired = false;
@@ -355,16 +359,16 @@ static void FindSlaveDevice(){
                     break;
                     default:
 
-                    break;            
+                    break;
                 }
                 
                 show = !show;
                 
-                if(show)leds |= bit;
-                else leds &= ~bit;            
+                if( show )leds |= bit;
+                else leds &= ~bit;
                 
-                SpiWriteWord( leds );        
-            }           
+                SpiWriteWord( leds );
+            }
             
             CyDelayUs(100);
         }while( xMBMasterGetIsBusy() == true );
@@ -383,24 +387,24 @@ static CYBLE_API_RESULT_T HWInit(){
     CYBLE_API_RESULT_T apiResult = CYBLE_ERROR_OK;
     
     /* nested interaptu nustatymas */
-    CyIntSetVector(NESTED_ISR, NestedIsrHandler);
-    CyIntSetPriority(NESTED_ISR, NES_DEF_PRIORITY);
-    CyIntEnable(NESTED_ISR);
+    CyIntSetVector( NESTED_ISR, NestedIsrHandler );
+    CyIntSetPriority( NESTED_ISR, NES_DEF_PRIORITY );
+    CyIntEnable( NESTED_ISR );
     
-    SysTickInit();   
+    SysTickInit();
     WdtInit();
     
-    WDT0_DISABLE    
+    WDT0_DISABLE
     
     CapSenseInit();
     
     AdcInit();
 
-    SoundInit(true, CyTouchControl.Sound.Level);   
-    BacklightInit(true, CyTouchControl.Blank.Timeout.val);    
+    SoundInit( true, CyTouchControl.Sound.Level );
+    BacklightInit( true, CyTouchControl.Blank.Timeout.val );
     BlStartTimeout();
     
-    InitLEDS(); 
+    InitLEDS();
     
     SetSoundTone(3u);
     
@@ -408,7 +412,7 @@ static CYBLE_API_RESULT_T HWInit(){
 }
 
 /* darbiniu reiksmiu uzkrovimas */
-static CYBLE_API_RESULT_T CyTouchSettings(){    
+static CYBLE_API_RESULT_T CyTouchSettings(){
     uint8_t var = 0xFF;
     
     //EE_PutByte( EE_DATA_OK_FLAG_ADDR, &var);
@@ -416,7 +420,7 @@ static CYBLE_API_RESULT_T CyTouchSettings(){
     
     EE_GetByte( EE_DATA_OK_FLAG_ADDR, &var );
     
-    if( var != EE_DATA_OK_FLAG_VAL ) RestoreDefaults(); 
+    if( var != EE_DATA_OK_FLAG_VAL ) RestoreDefaults();
     
     EE_GetDWord( EE_WTIME_ADDR, &Time.WTime );
     
@@ -427,20 +431,20 @@ static CYBLE_API_RESULT_T CyTouchSettings(){
     EE_GetArray( CyTouchControl.Passwd, EE_PASSWD_ADDR, sizeof( CyTouchControl.Passwd ));
     EE_GetArray( CyTouchControl.LockTimer.data, EE_LOCKTIMER_ADDR, sizeof( CyTouchControl.LockTimer.data ));
 
-    CyTouchControl.Sound.Level = MIDLE;   
+    CyTouchControl.Sound.Level = MIDLE;
     CyTouchControl.Blank.Timeout.val = BL_TIMEOUT;
     CyTouchControl.Blank.MinValue.val = BL_MIN;
     CyTouchControl.Blank.MaxValue.val = BL_MAX;
     CyTouchControl.Status.SoundEna = true;
     CyTouchControl.Status.BlankEna = true;
     CyTouchControl.Status.Restart = false;
-    CyTouchControl.Status.OnOff = true;   
+    CyTouchControl.Status.OnOff = true;
     CyTouchControl.Status.Autolock = true;
     CyTouchControl.Status.Locked = false;
     
     DevData.Boost.Counter = (0u);
     DevData.Boost.val = false;
-    DevData.Boost.Time = (5u);    
+    DevData.Boost.Time = (5u);
 
     return CYBLE_ERROR_OK;
 }
@@ -450,7 +454,7 @@ static void RestoreDefaults(){
     
     uint8_t var;
     
-    EE_GetDWord( EE_WTIME_ADDR, &Time.WTime );    
+    EE_GetDWord( EE_WTIME_ADDR, &Time.WTime );
     
     EE_EraseChip();
     
@@ -459,7 +463,7 @@ static void RestoreDefaults(){
     MbPort.Settings.Baudrate.val = (19200u);
     MbPort.Settings.Parity.val = SCB_UART_PARITY_NONE;
     MbPort.Settings.StopBits.val = SCB_UART_STOP_BITS_1;
-    MbPort.Settings.DataBits.val = (8u);    
+    MbPort.Settings.DataBits.val = (8u);
     EE_PutArray( MbPort.Settings.data, EE_MB_DATA_ADDR, sizeof( MbPort.Settings.data )); 
     
     var = 1u;
@@ -487,7 +491,7 @@ static void RestoreDefaults(){
 /* Tikrinam ar baitas yra skaicius */
 uint8_t IsDigit(uint8_t byte)
 {
-    if(byte >= 0x30 && byte <= 0x39) return true;
+    if( byte >= 0x30 && byte <= 0x39 ) return true;
     return false;
 }
 
@@ -495,7 +499,7 @@ uint8_t IsDigit(uint8_t byte)
 CY_ISR(NestedIsrHandler)
 {
     /* Clear pending Interrupt */
-    CyIntClearPending(NESTED_ISR);
+    CyIntClearPending( NESTED_ISR );
 }
 
 /* [] END OF FILE */

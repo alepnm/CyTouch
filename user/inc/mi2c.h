@@ -61,7 +61,7 @@ EE_LOCKTIMER_ADDR           0x0020                4
 #define EE_DATA_OK_FLAG_ADDR        0x0011  /* ( 1 byte ) */
 #define EE_MB_DATA_ADDR             0x0012  /* ( 7 bytes ) */
 #define EE_SLAVE_ADDR               0x001A  /* slaivo adresas ( 1 byte ) */
-#define EE_TSET_RANGE_ADDR          0x001C  /* ( 3 bytes ) */
+#define EE_TSET_RANGE_ADDR          0x001C  /* ( TSET nustatymai 3 bytes ) */
 #define EE_LOCKTIMER_ADDR           0x0020
 #define EE_PASSWD_ADDR              0x0024
 

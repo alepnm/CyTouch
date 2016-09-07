@@ -139,12 +139,12 @@ void PrvGetDataFromSlave( mbdev_t *slave ){
 
         stage++;
         break;
-        case 1:        
+        case 1:  
         PrvGetTSetValueFromBuffer( slave );
         PrvGetSpeedValueFromBuffer( slave );
         PrvGetTempSensValuesFromBuffer( slave );
-        PrvCollectAlarmsFromBuffer( slave );
         PrvGetPrvModeFromBuffer( slave );
+        PrvCollectAlarmsFromBuffer( slave );
         stage = ( 0u );
         break;
     }   

@@ -63,10 +63,12 @@ void T_Leds(){
     {
         case CYBLE_STATE_ADVERTISING:
             if( LEDS.BleLed.State == true ) LEDS.BleLed.counter_val = BLE_LED_TO_ADVESTING;
-            else LEDS.BleLed.counter_val = (10u);       
+            else LEDS.BleLed.counter_val = (10u); 
             break;            
         case CYBLE_STATE_CONNECTED:             
-            LEDS.BleLed.counter_val = BLE_LED_TO_CONNECT;
+            //LEDS.BleLed.counter_val = BLE_LED_TO_CONNECT;
+            
+            BLE_LED_Write( LED_ON );
             break;            
         default:
             break;
@@ -192,6 +194,8 @@ void InitLEDS(){
 }
 static void BleLed_Process(){    
     /* BLE LED process */
+    if( cyBle_state == CYBLE_STATE_CONNECTED ) return;
+    
     if(LEDS.BleLed.Counter < GetTicks()){
         LEDS.BleLed.Counter = GetTicks() + LEDS.BleLed.counter_val;
         LEDS.BleLed.State = !LEDS.BleLed.State;
