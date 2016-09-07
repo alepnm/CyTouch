@@ -28,7 +28,9 @@
 #include "mbport.h"
 
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED
+    
 /* ----------------------- Variables ----------------------------------------*/
+uint16_t RespTimeoutValue = MB_MASTER_TIMEOUT_MS_RESPOND;
 static USHORT usT35TimeOut50us;
 
 /* ----------------------- static functions ---------------------------------*/
@@ -70,8 +72,8 @@ void vMBMasterPortTimersConvertDelayEnable()
     vMBMasterSetCurTimerMode(MB_TMODE_CONVERT_DELAY);
     
     mbPortTimer_WriteCounter(0);
-    mbPortTimer_SetPrescaler(mbPortTimer_PRESCALE_DIVBY128);
-    mbPortTimer_WritePeriod(MB_MASTER_DELAY_MS_CONVERT * 176 / CommCLK_GetDividerRegister());   
+    mbPortTimer_SetPrescaler( mbPortTimer_PRESCALE_DIVBY128 );
+    mbPortTimer_WritePeriod( MB_MASTER_DELAY_MS_CONVERT * 176 / CommCLK_GetDividerRegister() );   
     
     mbPortTimerISR_Enable();
     
@@ -84,8 +86,8 @@ void vMBMasterPortTimersRespondTimeoutEnable()
     vMBMasterSetCurTimerMode(MB_TMODE_RESPOND_TIMEOUT);
     
     mbPortTimer_WriteCounter(0);
-    mbPortTimer_SetPrescaler(mbPortTimer_PRESCALE_DIVBY128);
-    mbPortTimer_WritePeriod(MB_MASTER_TIMEOUT_MS_RESPOND * 176 / CommCLK_GetDividerRegister());    
+    mbPortTimer_SetPrescaler( mbPortTimer_PRESCALE_DIVBY128 );
+    mbPortTimer_WritePeriod( RespTimeoutValue * 176 / CommCLK_GetDividerRegister() );    
     
     mbPortTimerISR_Enable();
     
@@ -108,6 +110,14 @@ inline void MasterPortTimerCallbackFunction()
 {
     mbPortTimerISR_ClearPending();
     prvvTIMERExpiredISR();
+}
+
+/* MbPort taimerio busena: true - aktyvus, false - neaktyvus */
+bool vMBMasterPortTimerState(){
+
+    if( mbPortTimer_ReadStatus() == mbPortTimer_STATUS_RUNNING ) return true;
+    
+    return false;
 }
 
 #endif

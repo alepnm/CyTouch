@@ -131,7 +131,7 @@ static SCB_I2C_INIT_STRUCT configI2C =
 * Divider = (HFCLK / Baudrate * Oversampling) - 1;
 */
 static const uint32_t baudrates[6u] = {4800u, 9600u, 19200u, 38400u, 57600u, 115200u};
-//_portdat MbPort = { .PortSettings = {{(uint8_t)9600, SCB_UART_PARITY_NONE, SCB_UART_STOP_BITS_1, ( 8u )}}, .SlaveAddr = {{ 0x01 }} };
+
 _portdat MbPort;
 
 /* Comm_UART_INIT_STRUCT provides the fields which match the selections

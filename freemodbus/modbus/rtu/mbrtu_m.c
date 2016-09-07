@@ -104,12 +104,10 @@ eMBMasterRTUInit(UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity )
         /* If baudrate > 19200 then we should use the fixed timer values
          * t35 = 1750us. Otherwise t35 must be 3.5 times the character time.
          */
-        if( ulBaudRate > (19200u) )
-        {
+        if( ulBaudRate > (19200u) ){
             usTimerT35_50us = (10u);
         }
-        else
-        {
+        else{
             /* The timer reload value for a character is given by:
              *
              * ChTimeValue = Ticks_per_1s / ( Baudrate / 11 )
@@ -149,6 +147,10 @@ eMBMasterRTUStart( void )
     vMBMasterPortTimersT35Enable(  );
 
     ExitCriticalSection(&isr);
+    
+    CyDelay(10);
+    
+    while( vMBMasterPortTimerState() == true ); // laukiam kol sustos mbPort taimeris
 }
 
 void

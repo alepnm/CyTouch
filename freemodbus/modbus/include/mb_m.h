@@ -256,6 +256,7 @@ void vMBMasterSetCBRunInMasterMode( BOOL IsMasterMode );
 UCHAR ucMBMasterGetPDUSndLength( void );
 void vMBMasterSetPDUSndLength( UCHAR SendPDULength );
 void vMBMasterSetCurTimerMode( eMBMasterTimerMode eMBTimerMode );
+bool vMBMasterPortTimerState( void );
 
 eMBException GetException(void);
 

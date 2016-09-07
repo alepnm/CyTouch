@@ -40,6 +40,8 @@ extern bool ChangeUartSettingsRequired;
 extern bool BoostUpdateRequireBit;
 //extern bool AuthKeyRequired;
 
+extern uint16_t ResponceTimeout;
+
 extern CYTOUCH_CONTROL_T CyTouchControl;
 extern const SERVICE_DEVICE_INFO_T CyTouchInfo;
 
@@ -48,9 +50,9 @@ cydata_t DevData;
 
 
 /* Internal function prototype */
-CYBLE_API_RESULT_T HWInit( void );
-CYBLE_API_RESULT_T CyTouchSettings( void );
-CYBLE_API_RESULT_T SCB_ModeHandler( void );
+static CYBLE_API_RESULT_T HWInit( void );
+static CYBLE_API_RESULT_T CyTouchSettings( void );
+static CYBLE_API_RESULT_T SCB_ModeHandler( void );
 
 
 /* ------------------------------ RTOS Tasks --------------------------------*/
@@ -89,26 +91,39 @@ int main()
     apiResult = CyBle_Start( StackEvents );
     if( apiResult != CYBLE_ERROR_OK ) CYASSERT(0u);     
     
-    prv = CreateSlave( 1u );
+    prv = CreateSlave( 200u );
     if( prv == NULL ) CYASSERT(0u);
     
     EE_GetByte( EE_SLAVE_ADDR, &prv->Data.addr );
     
     //if( UartConfig( MbPort.Settings.Baudrate.val, MbPort.Settings.Parity.val, MbPort.Settings.StopBits.val, MbPort.Settings.DataBits.val ) == CYBLE_ERROR_OK ){ 
-    if( UartConfig( 4800u, SCB_UART_PARITY_EVEN, SCB_UART_STOP_BITS_1, 8u ) == CYBLE_ERROR_OK ){
+    if( UartConfig( 19200u, SCB_UART_PARITY_NONE, SCB_UART_STOP_BITS_1, 8u ) == CYBLE_ERROR_OK ){
         ( void )eMBMasterInit( MB_RTU, (0u), MbPort.Settings.Baudrate.val, MB_PAR_NONE );
-        ( void )eMBMasterEnable();       
+        ( void )eMBMasterEnable();
     }  
+
+       
     
-    CyDelay(250);   //uzdelsimas reikalingas portTimer sustojimui po MbMaster inicializacijos    
+/* Jieskome sleiva. Galimi variantai:
+    1. Neteisingas sleivo adresas. Jieskame veikianti sleiva ir, jai toks yra isimenam EEPROME jo adresa.
+    2. Sleivo adresas teisingas, bet jis neatsako. Galimi variantai:
+        2.1 Nera veikianciu sleivu.
+        2.2 Sleivo adresas skiriasi nuo uzregistroto paskutinio veikiancio.  Surandame toki ir isimenam EEPROME
+            jo adresa.
+        2.3 Sleivo adresas sutampa su uzregistruotu paskutiniu veikianciu, bet del kazkokiu tai priezasciu
+            iskarto neatsake. Surandame toki ir nieko nedarom.   
+    
+    */
     
     
     if( prv->Data.addr == 0 || prv->Data.addr > MB_ADDRESS_MAX ) {
         // slaivo adresas neteisingas, reikia jieskoti veikiancio slaivo
         
-        FindSlaveDevice();  //jieskome pirma veikianti devaisa 
+        /* jieskome pirma veikianti devaisa */
+        FindSlaveDevice();
         
-        EE_PutByte( EE_SLAVE_ADDR, &prv->Data.addr );   // saugojam EEPROM'e rasto slaivo adresa
+        /* saugojam EEPROM'e rasto slaivo adresa */
+        EE_PutByte( EE_SLAVE_ADDR, &prv->Data.addr );
     }else{
     
         eMBMasterReqReportSlaveId( prv->Data.addr );    
@@ -120,8 +135,13 @@ int main()
         
         if( prv->Status.IsRecognized == false ){
             
-            FindSlaveDevice();  //jieskome pirma veikianti devaisa 
-            EE_PutByte( EE_SLAVE_ADDR, &prv->Data.addr );   // saugojam EEPROM'e rasto slaivo adresa
+            uint8_t tmp = prv->Data.addr;
+            
+            /* jieskome pirma veikianti devaisa */
+            FindSlaveDevice();
+            
+            /* saugojam EEPROM'e rasto slaivo adresa, jai jo adresas skiriasi nuo issaugoto */
+            if(tmp != prv->Data.addr) EE_PutByte( EE_SLAVE_ADDR, &prv->Data.addr );
         }        
     }
     
@@ -221,7 +241,8 @@ int main()
     }
 }
 
-CYBLE_API_RESULT_T SCB_ModeHandler(){
+/* UART rezimo valdymas */
+static CYBLE_API_RESULT_T SCB_ModeHandler(){
     
     // jai porto konfiguracija pasikeite, keiciam ja fiziskai
     if( ChangeUartSettingsRequired == true ){                
@@ -248,73 +269,7 @@ CYBLE_API_RESULT_T SCB_ModeHandler(){
     return CYBLE_ERROR_INVALID_STATE;
 }
 
-CYBLE_API_RESULT_T HWInit(){
-    CYBLE_API_RESULT_T apiResult = CYBLE_ERROR_OK;
-    
-    /* nested interaptu nustatymas */
-    CyIntSetVector(NESTED_ISR, NestedIsrHandler);
-    CyIntSetPriority(NESTED_ISR, NES_DEF_PRIORITY);
-    CyIntEnable(NESTED_ISR);
-    
-    SysTickInit();   
-    WdtInit();
-    
-    WDT0_DISABLE    
-    
-    CapSenseInit();
-    
-    AdcInit();
-
-    SoundInit(true, CyTouchControl.Sound.Level);   
-    BacklightInit(true, CyTouchControl.Blank.Timeout.val);    
-    BlStartTimeout();
-    
-    InitLEDS(); 
-    
-    SetSoundTone(3u);
-    
-    return apiResult;
-}
-
-CYBLE_API_RESULT_T CyTouchSettings(){    
-    uint8_t var = 0xFF;
-    
-    //EE_PutByte( EE_DATA_OK_FLAG_ADDR, &var);
-    //EE_PutByte( EE_SLAVE_ADDR, &var );
-    
-    EE_GetByte( EE_DATA_OK_FLAG_ADDR, &var );
-    
-    if( var != EE_DATA_OK_FLAG_VAL ) RestoreDefaults(); 
-    
-    EE_GetDWord( EE_WTIME_ADDR, &Time.WTime );
-    
-    EE_GetArray( MbPort.Settings.data, EE_MB_DATA_ADDR, sizeof( MbPort.Settings.data ));
-    MbPort.Mode = SCB_MBUS;
-    
-    EE_GetArray( CyTouchControl.TSet.data, EE_TSET_RANGE_ADDR, sizeof( CyTouchControl.TSet.data ));
-    EE_GetArray( CyTouchControl.Passwd, EE_PASSWD_ADDR, sizeof( CyTouchControl.Passwd ));
-    EE_GetArray( CyTouchControl.LockTimer.data, EE_LOCKTIMER_ADDR, sizeof( CyTouchControl.LockTimer.data ));
-
-    CyTouchControl.Sound.Level = MIDLE;   
-    CyTouchControl.Blank.Timeout.val = BL_TIMEOUT;
-    CyTouchControl.Blank.MinValue.val = BL_MIN;
-    CyTouchControl.Blank.MaxValue.val = BL_MAX;
-    CyTouchControl.Status.SoundEna = true;
-    CyTouchControl.Status.BlankEna = true;
-    CyTouchControl.Status.Restart = false;
-    CyTouchControl.Status.OnOff = true;   
-    CyTouchControl.Status.Autolock = true;
-    CyTouchControl.Status.Locked = false;
-    
-    DevData.Boost.Counter = (0u);
-    DevData.Boost.val = false;
-    DevData.Boost.Time = (5u);    
-
-    return CYBLE_ERROR_OK;
-}
-
-
-// automatine veikiancio slaivo pajeska
+/* automatine veikiancio slaivo pajeska */
 static void FindSlaveDevice(){
 
     uint8_t i = 120;
@@ -423,8 +378,75 @@ static void FindSlaveDevice(){
     }
 }
 
+/* hardvaro inicializacija */
+static CYBLE_API_RESULT_T HWInit(){
+    CYBLE_API_RESULT_T apiResult = CYBLE_ERROR_OK;
+    
+    /* nested interaptu nustatymas */
+    CyIntSetVector(NESTED_ISR, NestedIsrHandler);
+    CyIntSetPriority(NESTED_ISR, NES_DEF_PRIORITY);
+    CyIntEnable(NESTED_ISR);
+    
+    SysTickInit();   
+    WdtInit();
+    
+    WDT0_DISABLE    
+    
+    CapSenseInit();
+    
+    AdcInit();
 
-void RestoreDefaults(){
+    SoundInit(true, CyTouchControl.Sound.Level);   
+    BacklightInit(true, CyTouchControl.Blank.Timeout.val);    
+    BlStartTimeout();
+    
+    InitLEDS(); 
+    
+    SetSoundTone(3u);
+    
+    return apiResult;
+}
+
+/* darbiniu reiksmiu uzkrovimas */
+static CYBLE_API_RESULT_T CyTouchSettings(){    
+    uint8_t var = 0xFF;
+    
+    //EE_PutByte( EE_DATA_OK_FLAG_ADDR, &var);
+    //EE_PutByte( EE_SLAVE_ADDR, &var );
+    
+    EE_GetByte( EE_DATA_OK_FLAG_ADDR, &var );
+    
+    if( var != EE_DATA_OK_FLAG_VAL ) RestoreDefaults(); 
+    
+    EE_GetDWord( EE_WTIME_ADDR, &Time.WTime );
+    
+    EE_GetArray( MbPort.Settings.data, EE_MB_DATA_ADDR, sizeof( MbPort.Settings.data ));
+    MbPort.Mode = SCB_MBUS;
+    
+    EE_GetArray( CyTouchControl.TSet.data, EE_TSET_RANGE_ADDR, sizeof( CyTouchControl.TSet.data ));
+    EE_GetArray( CyTouchControl.Passwd, EE_PASSWD_ADDR, sizeof( CyTouchControl.Passwd ));
+    EE_GetArray( CyTouchControl.LockTimer.data, EE_LOCKTIMER_ADDR, sizeof( CyTouchControl.LockTimer.data ));
+
+    CyTouchControl.Sound.Level = MIDLE;   
+    CyTouchControl.Blank.Timeout.val = BL_TIMEOUT;
+    CyTouchControl.Blank.MinValue.val = BL_MIN;
+    CyTouchControl.Blank.MaxValue.val = BL_MAX;
+    CyTouchControl.Status.SoundEna = true;
+    CyTouchControl.Status.BlankEna = true;
+    CyTouchControl.Status.Restart = false;
+    CyTouchControl.Status.OnOff = true;   
+    CyTouchControl.Status.Autolock = true;
+    CyTouchControl.Status.Locked = false;
+    
+    DevData.Boost.Counter = (0u);
+    DevData.Boost.val = false;
+    DevData.Boost.Time = (5u);    
+
+    return CYBLE_ERROR_OK;
+}
+
+/* pradiniu reiksmiu atstatymas */
+static void RestoreDefaults(){
     
     uint8_t var;
     
