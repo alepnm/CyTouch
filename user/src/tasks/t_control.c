@@ -93,8 +93,6 @@ extern cydata_t DevData;
 extern mbdev_t *prv;
 extern uint16_t ShowWhatTimer;
 
-
-
 static bool IsrNeed = false; 
 static uint32_t LockTimer = LOCK_TIMER_DEF;
 
@@ -466,9 +464,7 @@ static void OnOff_DClickHandler(){
     }else{
         CyTouchControl.Status.Locked = true;
         ShowWhatTimer = (10u);
-    }
-    
-    
+    }    
 }
 
 /* TUp mygtuko handleriai */

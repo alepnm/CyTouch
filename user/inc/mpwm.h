@@ -18,7 +18,7 @@
     
 #define BL_MIN      (1000u)
 #define BL_MAX      (20000u)
-#define BL_TIMEOUT  (20000u)
+#define BL_TIMEOUT  (40000u)
     
 #define NONE        (0u)
 #define LOW         (2u)

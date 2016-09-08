@@ -19,6 +19,13 @@
 #include "mbutils.h"
 #include "buffers.h"
 
+/* OnOff LED'o indikacija */
+#define ONOFF_LED_LOCK      // OnOff LED rodo pultelio busena ( aktyvus/uzlokintas )
+//#define ONOFF_LED_LINK      // OnOff LED rodo rysio su PRV aktyvuma
+
+/* BLE LED'o LEDo indikacija */
+#define BLE_LED_SIMPLE       // BLE LED bluetooth prisijungimo metu dega
+//#define BLE_LED_BLINK       // BLE LED bluetooth prisijungimo metu mirkcioja
 
  
 #define BLE_LED_TO_ADVESTING    ( 3000u )
@@ -55,9 +62,7 @@ static bool BlinkInError(void);
 // periodas 20 ms
 void T_Leds(){   
     static uint8_t stage = (0u);
-    static uint8_t cnt = (0u);
-   
-  
+    static uint8_t cnt = (0u);  
     
     switch (cyBle_state)
     {
@@ -65,10 +70,15 @@ void T_Leds(){
             if( LEDS.BleLed.State == true ) LEDS.BleLed.counter_val = BLE_LED_TO_ADVESTING;
             else LEDS.BleLed.counter_val = (10u); 
             break;            
-        case CYBLE_STATE_CONNECTED:             
-            //LEDS.BleLed.counter_val = BLE_LED_TO_CONNECT;
+        case CYBLE_STATE_CONNECTED:
             
-            BLE_LED_Write( LED_ON );
+            #ifdef BLE_LED_SIMPLE
+                BLE_LED_Write( LED_ON );
+            #endif            
+            #ifdef BLE_LED_BLINK
+                LEDS.BleLed.counter_val = BLE_LED_TO_CONNECT;
+            #endif
+            
             break;            
         default:
             break;
@@ -95,12 +105,6 @@ void T_Leds(){
         switch( stage ){
             case 0:
                 BlStartTimeout();
-                
-//                LEDS.Sp1Led.State = LED_OFF;
-//                LEDS.Sp2Led.State = LED_OFF;
-//                LEDS.Sp3Led.State = LED_OFF;
-//                LEDS.BoostLed.State = LED_OFF;
-                
                 
                 Sp1_LED_Write( LED_OFF );
                 Sp2_LED_Write( LED_OFF );
@@ -170,19 +174,8 @@ void T_Leds(){
 
 
 void InitLEDS(){
-    
-//    LEDS.OnOffLed.State = LED_OFF;
-//    LEDS.TLED.Value = TLEDS_OFF;
-//    LEDS.Sp1Led.State = LED_OFF;
-//    LEDS.Sp2Led.State = LED_OFF;
-//    LEDS.Sp3Led.State = LED_OFF;
-//    LEDS.BoostLed.State = LED_OFF;
-//    LEDS.BleLed.State = LED_OFF;
-//    LEDS.FilterLed.State = LED_OFF;
-//    LEDS.ServiceLed.State = LED_OFF;
-    
-    LEDS.BleLed.counter_val = BLE_LED_TO_ADVESTING;
-    
+
+    LEDS.BleLed.counter_val = BLE_LED_TO_ADVESTING;    
     
     OnOff_LED_Write( LED_OFF );    
     Sp1_LED_Write( LED_OFF );
@@ -194,22 +187,36 @@ void InitLEDS(){
 }
 static void BleLed_Process(){    
     /* BLE LED process */
-    if( cyBle_state == CYBLE_STATE_CONNECTED ) return;
+    
+    #ifdef BLE_LED_SIMPLE
+        if( cyBle_state == CYBLE_STATE_CONNECTED ) return;
+    #endif    
     
     if(LEDS.BleLed.Counter < GetTicks()){
         LEDS.BleLed.Counter = GetTicks() + LEDS.BleLed.counter_val;
         LEDS.BleLed.State = !LEDS.BleLed.State;
         
         BLE_LED_Write( LEDS.BleLed.State ); 
-    }    
+    }
 }
 static void OnOffLed_Process(){
     // Link LED handle
-    if( ShowWhatTimer == 0 ){
-        OnOff_LED_Write( !MbStackFree );
-    }else{
-        OnOff_LED_Write( LED_ON );
-    }    
+    
+    #ifdef ONOFF_LED_LINK
+        if( ShowWhatTimer == 0 ){
+            OnOff_LED_Write( !MbStackFree );
+        }else{
+            OnOff_LED_Write( LED_ON );
+        }
+    #endif    
+    #ifdef ONOFF_LED_LOCK
+        if(CyTouchControl.Status.Locked){
+            OnOff_LED_Write( LED_ON );
+        }else{
+            OnOff_LED_Write( LED_OFF );
+        } 
+    #endif
+    
 }
 static void TLeds_Process(){
     
@@ -405,13 +412,7 @@ static void SpeedLeds_Process(){
     }
     else{
         Boost_LED_Write( prv->Status.Res.BoostActive );
-    } 
-    
-    
-    
-    
-    
-    
+    }     
 }
     
 
@@ -425,8 +426,8 @@ void CheckLeds(){
     Filter_LED_Write( LED_ON );
     Service_LED_Write( LED_ON );
     
-//    RunLeds_1();
-//    RunLeds_2();
+//    while( RunLeds_1() == false );
+//    while( RunLeds_2() == false );
     while( RunLeds_3() == false );   
     
     OnOff_LED_Write( LED_OFF ); 
@@ -436,8 +437,7 @@ void CheckLeds(){
     Boost_LED_Write( LED_OFF );
     BLE_LED_Write( LED_OFF );
     Filter_LED_Write( LED_OFF );
-    Service_LED_Write( LED_OFF );
-    
+    Service_LED_Write( LED_OFF );    
 }
 bool RunLeds_1(){
     uint16_t spi_out = TLEDS_OFF; 

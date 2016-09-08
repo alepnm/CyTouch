@@ -61,13 +61,13 @@ typedef union{
                 uint8_t    data[2];
                 struct{
                     uint8_t OnOff       :1;
-                    uint8_t SoundEna    :1;
-                    uint8_t BlankEna    :1;
-                    uint8_t Ble2Uart    :1;
-                    uint8_t Restart     :1;
-                    uint8_t Autolock    :1;
-                    uint8_t Locked      :1;
-                    uint8_t Defaults    :1;
+                    uint8_t SoundEna    :1;     // pypsas ijungtas/isjungtas
+                    uint8_t BlankEna    :1;     // prigesimas ijungtas/isjungtas
+                    uint8_t Ble2Uart    :1;     // Ble->Uart rezimo ijungimas/isjungimas
+                    uint8_t Restart     :1;     // restarto bitas - irasius 1 pultas restartuoja
+                    uint8_t Autolock    :1;     // automatinis valdymo blokavimas ijungtas/isjungtas
+                    uint8_t Locked      :1;     // valdymo blokavimo busena
+                    uint8_t Defaults    :1;     // Defaults atstatymo bitas - irasius 1 atsistato defaultines reiksmes
                 };
             }Status;   //2
         };

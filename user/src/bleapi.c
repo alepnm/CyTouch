@@ -65,14 +65,9 @@ void HandleBleProcess(void)
     switch (cyBle_state)
     {
         case CYBLE_STATE_CONNECTED:
-            
-//            if(BLEStackStatus == CYBLE_STACK_STATE_BUSY) break;
-//       
-//            if( RxDataNotificationEnabled == NOTIFICATON_ENABLED )
-//            {
-                HandleUartRxTraffic();
-//            } 
+            HandleUartRxTraffic();
             break;
+        case CYBLE_STATE_INITIALIZING:
         case CYBLE_STATE_DISCONNECTED:
         case CYBLE_STATE_STOPPED:
         case CYBLE_STATE_ADVERTISING:
@@ -151,10 +146,10 @@ void StackEvents(uint32 event, void *eventParam)
             /* Req Client to Start Authentication process */
 //            apiResult = CyBle_GapAuthReq(cyBle_connHandle.bdHandle, &cyBle_authInfo);
 //            AuthKeyRequired = true;
-            SetSoundTone(3u);
+            SetSoundTone(1u);
             break;
         case CYBLE_EVT_GAP_DEVICE_DISCONNECTED: 
-            SetSoundTone(3u);
+            SetSoundTone(1u);
             CyBle_GappStartAdvertisement(CYBLE_ADVERTISING_FAST);
             break;   
         case CYBLE_EVT_GAP_KEYINFO_EXCHNGE_CMPLT:
