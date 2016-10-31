@@ -1,0 +1,28 @@
+
+
+
+typedef struct{
+    uint8_t var8;
+    uint16_t var16;
+    uint32_t var32;
+}__attribute__ ((packed)) STR_T;
+
+
+#pragma pack(push,1)
+/* packed typedef */
+typedef struct{
+    uint8_t var8;
+    uint16_t var16;
+    uint32_t var32;
+}STR1_T;
+
+/* packed struct */
+struct myStruct{
+    uint8_t var8;
+    uint16_t var16;
+    uint32_t var32;
+};
+
+......
+
+#pragma pack(pop)
