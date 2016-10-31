@@ -1,0 +1,15 @@
+Last Modified Date & Time: 10/31/2016 09:28:17
+
+CyTouch v2.x: TopDesign.cysch
+	SCB [v3.10] to [v3.20]
+	SCBSPI [v3.10] to [v3.20]
+	BLE [v3.10] to [v3.20]
+	CapSense [v2.40] to [v2.50]
+	ADC_SAR_Seq [v2.30] to [v2.40]
+
+CyTouch v2.x: CyTouch v2.x.cydwr
+	cy_boot [v5.30] to [v5.50]
+	cy_lfclk [v1.0] to [v1.10]
+	LIN_Dynamic [v3.30] to [v3.40]
+
+
