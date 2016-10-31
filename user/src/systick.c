@@ -18,8 +18,8 @@
 #define SYSTICK_RELOAD      (CYDEV_BCLK__SYSCLK__HZ / SYSTICK_EACH_10_HZ)
 
 /* -------------------------------- Statics ---------------------------------*/
-//static volatile uint32_t ticks;
-register uint32_t ticks asm("r0");
+static volatile uint32_t ticks;
+//register uint32_t ticks asm("r0");
 
 /* Prototype of SysTick ISR */
 static CY_ISR_PROTO(SysTickHandler);
