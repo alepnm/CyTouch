@@ -3,11 +3,11 @@
 <!--This file is machine generated and read. It is not intended to be edited by hand.-->
 <!--Due to this, there is no schema for this file.-->
 <CyGuid_2867d519-54d2-4c01-9830-c51cb08bc3dd type_name="CyDesigner.Common.ProjMgmt.Model.CyPrjMgmtWorkspaceSerialize" version="5" xml_contents_version="3" name="CyTouch" persistent="CyTouch.cywrk" platform="NOT_USED">
-<current_project name=".\CyTouch v2.x.cyprj" />
+<current_project name=".\CyTouch_v2.x.cyprj" />
 <wrkspc_folders />
 <files />
 <projects>
-<v>.\CyTouch v2.x.cyprj</v>
+<v>.\CyTouch_v2.x.cyprj</v>
 </projects>
 <workspace_id v="c92dccb1-592e-4ba0-8801-4e4f3d1a56bf" />
 <WriteAppVersionLastSavedWith v="4.0.0.432" />
