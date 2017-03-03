@@ -258,6 +258,9 @@ void CapSenseInit(){
     CyIntSetPriority(CS_ISR_NUMBER, CS_DEF_PRIORITY);
     CyIntEnable(CS_ISR_NUMBER);
 }
+
+
+
 void CapSenseProcess(){ 
     btn_t *btn;
    
@@ -323,6 +326,8 @@ void CapSenseProcess(){
 
     CapSense_UpdateEnabledBaselines();
 	CapSense_ScanEnabledWidgets();
+    
+    //while(CapSense_IsBusy() != false);
 }
 
    

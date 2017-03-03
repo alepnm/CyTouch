@@ -88,7 +88,10 @@ static void VentikCollectAlarmsFromBuffer(mbdev_t *sl){
     
     DevData.Alarms.Service = ( DevData.Alarms.val > 0u ) ? true : false;
     
-    DevData.Alarms.Filter = xMBUtilGetBits(sl->Buffers.DiscreteInputs, VENTIK_D_FILTER_ALRM, 1);       
+    DevData.Alarms.Filter = xMBUtilGetBits(sl->Buffers.DiscreteInputs, VENTIK_D_FILTER_ALRM, 1);    
+    //DevData.Alarms.Filter = true;
+    
+    
     prv->Status.Res.SpeedLowActive = xMBUtilGetBits(sl->Buffers.DiscreteInputs, VENTIK_D_SPEEDLOW, 1);
     
     prv->Status.Res.BoostActive = false;

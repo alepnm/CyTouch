@@ -22,9 +22,14 @@
 //request: 01:03:00:00:00:10:44:06 Read HR from 0x00 count = 0x10
 //request: 01:05:00:12:FF:00:2C:3F Reset PRV
 
+
+//request: F7:2A:00:00:00:01:02:00:03:4A:9E Write UserRegister TFTTP
+
+
+
 /* MTU size to be used by Client and Server after MTU exchange */
 extern uint16_t     mtuSize;
-extern bool      BLEStackStatus;
+extern bool         BLEStackStatus;
 
 /* Global variables to manage current operation mode and initialization state */
 //uint8_t mode = OP_MODE_UART;

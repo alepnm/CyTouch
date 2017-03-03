@@ -115,13 +115,24 @@ void CheckPrvType(mbdev_t *dev){
         }        
     }
     
+    
+    
+    /*
+    KE-E (sena versija, elektrinis)
+    KE-W (sena versija, vandeninis)
+    KE-AE(varikliai AC, elektrinis)
+    KE-EE(varikliai EC, elektrinis)
+    KE-AW(varikliai AC, vandeninis)
+    KE-EW(varikliai EC, vandeninis)
+    KE-
+    */
     if( dev->Buffers.SlaveId->Add[0] == 'K' && dev->Buffers.SlaveId->Add[1] == 'E' ){
-        if( dev->Buffers.SlaveId->Add[3] == 'E' ){
+        if( dev->Buffers.SlaveId->Add[3] == 'E' || dev->Buffers.SlaveId->Add[4] == 'E' ){
             dev->Status.IsRecognized = true;
             dev->Status.Type = VENTIKE;
         }
         
-        if( dev->Buffers.SlaveId->Add[3] == 'W' ){
+        if( dev->Buffers.SlaveId->Add[3] == 'W' || dev->Buffers.SlaveId->Add[4] == 'W' ){
             dev->Status.IsRecognized = true;
             dev->Status.Type = VENTIKW;
         }        

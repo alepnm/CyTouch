@@ -79,9 +79,9 @@ int main()
 
     CyGlobalIntEnable;
     
-    ( void )CyTouchSettings(); 
+    ( void )HWInit(); 
     
-    ( void )HWInit();  
+    ( void )CyTouchSettings(); 
     
     CheckLeds();
     
@@ -425,7 +425,9 @@ static CYBLE_API_RESULT_T CyTouchSettings(){
     
     EE_GetByte( EE_DATA_OK_FLAG_ADDR, &var );
     
-    if( var != EE_DATA_OK_FLAG_VAL ) RestoreDefaults();
+    if( var != EE_DATA_OK_FLAG_VAL ){
+        RestoreDefaults();
+    }
     
     EE_GetDWord( EE_WTIME_ADDR, &Time.WTime );
     

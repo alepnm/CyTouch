@@ -15,30 +15,74 @@
 #include <project.h>
 #include "stdbool.h"
     
-/* EEPROM tipai */ 
+///* EEPROM tipai */ 
+//#define LC04    4   //4 kbitai
+//#define LC08    8   //8 kbitai
+//#define LC16    16  //16 kbitai
+//    
+//#define __EEPROM    LC08
+//    
+// 
+//#if defined __EEPROM
+//    #define I2C_SLAVE_ADDR          0x50
+//    
+//    #if ( __EEPROM == LC04 ) 
+//        #define I2C_NBLOCKS         2u  //24LC04
+//    #elif( __EEPROM == LC08 ) 
+//        #define I2C_NBLOCKS         4u  //24LC08
+//    #elif( __EEPROM == 16 ) 
+//        #define I2C_NBLOCKS         8u  //24LC16
+//    #endif   
+//    
+//    #define EE_SIZE                 (I2C_NBLOCKS * EE_BLOCK_SIZE)
+//    #define EE_PAGE_SIZE            (16u)
+//    #define EE_BLOCK_SIZE           (256u)
+//    #define EE_EMPTY_BYTE           (0xFF)
+//#endif
+
+
+
+
+
+
+/* EEPROM tipai */
+#define LC01    1
+#define LC02    2
 #define LC04    4   //4 kbitai
 #define LC08    8   //8 kbitai
 #define LC16    16  //16 kbitai
     
-#define __EEPROM    LC08
+#define __EEPROM    LC01
     
  
 #if defined __EEPROM
     #define I2C_SLAVE_ADDR          0x50
     
-    #if ( __EEPROM == LC04 ) 
-        #define I2C_NBLOCKS         2u  //24LC04
+    
+    #if ( __EEPROM == LC01 ) 
+        #define I2C_NBLOCKS         1u  //24LC01
+        #define EE_PAGE_SIZE        (8u)
+    #elif ( __EEPROM == LC02 ) 
+        #define I2C_NBLOCKS         2u  //24LC02
+        #define EE_PAGE_SIZE        (8u)
+    #elif ( __EEPROM == LC04 ) 
+        #define I2C_NBLOCKS         4u  //24LC04
+        #define EE_PAGE_SIZE        (16u)
     #elif( __EEPROM == LC08 ) 
-        #define I2C_NBLOCKS         4u  //24LC08
+        #define I2C_NBLOCKS         8u  //24LC08
+        #define EE_PAGE_SIZE        (16u)
     #elif( __EEPROM == 16 ) 
-        #define I2C_NBLOCKS         8u  //24LC16
+        #define I2C_NBLOCKS         16u  //24LC16
+        #define EE_PAGE_SIZE        (16u)
     #endif   
     
+    #define EE_BLOCK_SIZE           (128u)
     #define EE_SIZE                 (I2C_NBLOCKS * EE_BLOCK_SIZE)
-    #define EE_PAGE_SIZE            (16u)
-    #define EE_BLOCK_SIZE           (256u)
     #define EE_EMPTY_BYTE           (0xFF)
 #endif
+
+
+
 
     
 

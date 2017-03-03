@@ -1,0 +1,168 @@
+Kaip Nierka dirba su Ventik versijom savo pulte:
+
+
+
+// tik viena karta
+ // 'K','E','-','E','E'
+ // 'K','E','-','E','A'
+ // 'K','E','-','W','E'
+ // 'K','E','-','W','A'
+ // 'U','E','-','E','E'
+ // REJ2.4RR2.EC1.E4.F3.00.A1.NC.csv
+ // REP2.4RR2.AC1.E2.F3.00.A0.NC.csv
+ // REP2.4RR2.AC1.E4.F3.00.A1.NC.csv
+ // REP2.4RPK3.AC1.E2.F3.00.A0.NC.csv
+ // REP2.4RPK3.AC1.E4.F3.00.A1.NC.csv
+ // RER2.4RPK3.EC1.E1.F3.00.A1.NC.csv
+ // RER2.4RPK3.EC1.E4.F3.00.A1.NC.csv
+ // RER2.4RPS3.EC1.E1.F3.00.A0.NC.csv
+ // RER2.4RPS3.EC1.E1.F3.00.A1.NC.csv
+ // RER2.4RPS3.EC1.E4.F3.00.A0.NC.csv
+ // RER2.4RPS3.EC1.E4.F3.00.A1.NC.csv
+ // RER2.4RR1.EC1.E4.F3.00.A1.NC.csv
+ // RER2.4RR2.EC1.E4.F3.00.A0.NC.csv
+ // RER2.4RR2.EC1.E4.F3.00.A1.NC.csv
+ // RER2.4RR2.EC1.W1.F3.00.AX.NC.csv
+ // RWJ2.4RR2.EC1.W1.F3.00.AX.NC.csv
+ // RWP2.4RPK3.AC1.W1.F3.00.AX.NC.csv
+ // RWP2.4RR2.AC1.W1.F3.00.AX.NC.csv
+ // RWR2.4RPK3.EC1.W1.F3.00.AX.NC.csv
+ // RWR2.4RPS1.EC1.W1.F3.00.AX.NC.csv
+ // RWR2.4RPS3.EC1.W1.F3.00.AX.NC.csv
+ // RWR2.4RR1.EC1.W1.F3.00.AX.NC.csv
+ // RWR2.4RR2.EC1.W1.F3.00.AX.NC.csv
+ // 4..7.9
+ versijosKaic = 0; sukimas_ratu =0;
+ Bit.EC_speed =0;
+ 
+ if( buf_SlaveID[0] =='P' && buf_SlaveID[1] =='R' && buf_SlaveID[2] =='V' ){
+  if( buf_SlaveID[4] =='R' && (buf_SlaveID[5] =='E' || buf_SlaveID[5] =='W') )
+  {
+   if( buf_SlaveID[7] <= '9' && buf_SlaveID[8] == '.' && buf_SlaveID[9] <= '9')
+   {
+    versijosKaic = (buf_SlaveID[7]-0x30)*10 + (buf_SlaveID[9]-0x30);
+    if(buf_SlaveID[11] =='P'){;}
+    if(buf_SlaveID[11] =='R'){;}
+    MB_device_lock =1;
+    
+    switch(versijosKaic){
+    case 23:// DIBT su vasara ziema
+     ReadReg( 0, 25);
+     ReadReg( 260, 50);
+     ReadReg( 310, 32);
+     ReadReg( 380, 13);
+     max_holding = 393;
+     max_coil = 54;///8+1;
+     max_discrete = 0;
+     max_input = 20;
+     Kiek_jutikliu = (1<<1)|(1<<3)|(1<<4)|(1<<6)|(1<<10);//|(1<<13)|(1<<14);
+     // SAF EAF
+     //Kiek_jutikliu |= (1<<13)|(1<<14);
+     break;
+    case 24:// PRV patobulinta
+     ReadReg( 0, 25);
+     ReadReg( 260, 50);
+     ReadReg( 310, 32);
+     ReadReg( 380, 13);
+     max_holding = 393;
+     max_coil = 54;///8+1;
+     max_discrete = 0;
+     max_input = 18;
+     Kiek_jutikliu = (1<<1)|(1<<3)|(1<<4)|(1<<6)|(1<<10);//|(1<<13)|(1<<14);
+     // SAF EAF
+     //Kiek_jutikliu |= (1<<13)|(1<<14);
+     break;
+    case 25:// PRV patobulinta
+     ReadReg( 0, 25);
+     ReadReg( 260, 50);
+     ReadReg( 310, 32);
+     ReadReg( 380, 25);
+     ReadReg( 405, 12);
+     max_holding = 417;
+     max_coil = 58;///8+1;
+     max_discrete = 0;
+     max_input = 29;
+     Kiek_jutikliu = (1<<1)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<10)|(1<<11);//|(1<<13)|(1<<14);
+     // SAF EAF
+     //Kiek_jutikliu |= (1<<13)|(1<<14);
+     break;
+    case 50:// Regulite
+     ReadReg( 0, 25);
+     ReadReg( 260, 50);
+     ReadReg( 310, 32);
+     ReadReg( 380, 25);
+     ReadReg( 405, 12);
+     max_holding = 417;
+     max_coil = 54;///8+1;
+     max_discrete = 0;
+     max_input = 29;
+     Kiek_jutikliu = (1<<1)|(1<<3)|(1<<4)|(1<<6)|(1<<10);//|(1<<13)|(1<<14);
+     // SAF EAF
+     //Kiek_jutikliu |= (1<<13)|(1<<14);
+     //if(!sensor_alarm && !sensor_alarm1)
+     break;
+    case 60:// Regulite
+     ReadReg( 0, 25);
+     ReadReg( 260, 50);
+     ReadReg( 310, 32);
+     ReadReg( 380, 25);
+     ReadReg( 405, 12);
+     max_holding = 417;
+     max_coil = 54;///8+1;
+     max_discrete = 0;
+     max_input = 29;
+     Kiek_jutikliu = (1<<1)|(1<<3)|(1<<4)|(1<<6)|(1<<10);//|(1<<13)|(1<<14);
+     // SAF EAF
+     //Kiek_jutikliu |= (1<<13)|(1<<14);
+     // vandeninis pagal 
+     break;
+    }
+   }
+   // funkziju langas
+   //      f_reg_leidimas = (1<< FVENT)|(1<< FCOOL)|(1<< FNCOOL)|(1<< FFCONTR)| \
+   //       (1<< FBOOST)|(1<< FHUMID)|(1<< FFILT);
+   //      
+   //      f_reg_leidimas |= (1<< FVENT_SUP)|(1<< FVENT_ROOM)|(1<< FVENT_OUTD)| \
+   //       (1<< FCOOL_MIN)|(1<< FCOOL_OUT)|(1<< FCOOL_CON)|(1<< FCOOL_COFF)| \
+   //        (1<< FBOOST_SUP)|(1<< FBOOST_EXT);
+  }
+ }
+ else if( buf_SlaveID[0] =='K' && buf_SlaveID[1] =='E' ){
+  
+  if(buf_SlaveID[3] =='W' && buf_SlaveID[4] =='W'){
+   Kiek_jutikliu = (1<<1)|(1<<4)|(1<<7);//|(1<<13);
+   versijosKaic = 1100; // vandeninis
+   MB_device_lock =1;
+   
+   //ReadInput( 0, 25);//   ReadReg( 260, 50);
+   max_holding = 330;
+   max_coil = 45;///8+1;
+   max_discrete = 33;
+   max_input = 25;
+   if(buf_SlaveID[3] =='A' && buf_SlaveID[4] =='A'){;}
+   else{Bit.EC_speed =1;}
+  }
+  else if( buf_SlaveID[5] =='P' ){
+   Kiek_jutikliu = (1<<1)|(1<<3)|(1<<4)|(1<<8);//|(1<<13);
+   versijosKaic = 1200; // 
+   MB_device_lock =1;
+   
+   //ReadInput( 0, 14);//   ReadReg( 260, 50);
+   max_holding = 392;
+   max_coil = 45;///8+1;
+   max_discrete = 33;
+   max_input = 14;
+  }
+  else{
+   Kiek_jutikliu = (1<<1);//|(1<<13);
+   versijosKaic = 1000; //elektrinis
+   MB_device_lock =1;
+   
+   //ReadInput( 0, 25);//   ReadReg( 260, 50);
+   max_holding = 312;
+   max_coil = 45;///8+1;
+   max_discrete = 32;
+   max_input = 25;
+  }
+ }
+ return 0;
